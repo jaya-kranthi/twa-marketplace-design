@@ -1,0 +1,10 @@
+{
+  "version": 2,
+  "project_id": "twa-marketplace",
+  "name": "twa-marketplace-design",
+  "scaffolded_by": "scaffold-design",
+  "template": "design-repo-mockups-only",
+  "mockups_only": true,
+  "remote": "https://github.com/jaya-kranthi/twa-marketplace-design.git",
+  "deploy_urls": { "mockup": "" }
+}
