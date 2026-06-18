@@ -57,21 +57,29 @@ const APPROVALS=[
 ];
 
 /* ---------------- nav config ---------------- */
+// Left nav = primary work destinations only. Account/Settings/Logout live in the
+// top-right avatar menu (ACCT_MENU); Notifications = the top-bar bell; global
+// search = the top-bar search box. Grouping is used ONLY where the list is long
+// or spans distinct domains (super-admin) — short navs stay flat (no headers).
 const NAV={
   user:[
-    {sec:'Workspace',items:[['#/dashboard','📊 Dashboard'],['#/catalog','🗂️ Catalog'],['#/search','🔍 Search'],['#/activity','🕑 My Activity']]},
-    {sec:'Account',items:[['#/api-keys','🔑 API Keys'],['#/notifications','🔔 Notifications'],['#/settings','⚙️ Settings']]},
+    {items:[['#/dashboard','📊 Dashboard'],['#/catalog','🗂️ Catalog'],['#/activity','🕑 My Activity']]},
   ],
   orgadmin:[
-    {sec:'Workspace',items:[['#/dashboard','📊 Dashboard'],['#/catalog','🗂️ Catalog'],['#/search','🔍 Search']]},
+    {items:[['#/dashboard','📊 Dashboard'],['#/catalog','🗂️ Catalog']]},
     {sec:'Organization',items:[['#/org/members','👥 Members'],['#/org/subscription','💳 Subscription'],['#/org/api-keys','🔑 API Keys'],['#/org/activity','🕑 Org Activity']]},
-    {sec:'Account',items:[['#/notifications','🔔 Notifications'],['#/settings','⚙️ Settings']]},
   ],
   superadmin:[
     {sec:'Platform',items:[['#/admin/dashboard','📊 Dashboard'],['#/admin/approvals','✅ Approvals'],['#/admin/orgs','🏢 Organizations']]},
     {sec:'Catalog & Data',items:[['#/admin/catalog','🗂️ Catalog Authoring'],['#/admin/ingestion','📥 Ingestion'],['#/admin/plans','💳 Plans'],['#/admin/categories','🏷️ Categories'],['#/admin/keys','🔑 Ingestion Keys']]},
-    {sec:'Governance',items:[['#/admin/audit','📜 Audit'],['#/settings','⚙️ Settings']]},
+    {sec:'Governance',items:[['#/admin/audit','📜 Audit']]},
   ],
+};
+// Top-right avatar dropdown — account-scoped, secondary nav (role-aware).
+const ACCT_MENU={
+  user:[['#/settings','⚙️ Settings'],['#/api-keys','🔑 My API Keys'],['__logout','↩︎ Sign out']],
+  orgadmin:[['#/settings','⚙️ Settings'],['__logout','↩︎ Sign out']],
+  superadmin:[['#/settings','⚙️ Settings'],['__logout','↩︎ Sign out']],
 };
 const HOME={user:'#/dashboard',orgadmin:'#/dashboard',superadmin:'#/admin/dashboard'};
 
@@ -286,7 +294,7 @@ function renderAuth(route){
 /* ---------------- router ---------------- */
 const AUTH_ROUTES=['#/login','#/apply','#/apply/status','#/verify','#/reset','#/invite'];
 function renderNav(){
-  $('#sidebar').innerHTML=NAV[role].map(s=>`<div class="navsec">${s.sec}</div>`+s.items.map(([h,l])=>`<a class="navlink" href="${h}">${l}</a>`).join('')).join('');
+  $('#sidebar').innerHTML=NAV[role].map(s=>(s.sec?`<div class="navsec">${s.sec}</div>`:'')+s.items.map(([h,l])=>`<a class="navlink" href="${h}">${l}</a>`).join('')).join('');
   const cur=location.hash||HOME[role];
   $('#sidebar').querySelectorAll('.navlink').forEach(a=>{if(a.getAttribute('href')===cur.split('/').slice(0,2).join('/')||a.getAttribute('href')===cur)a.classList.add('active');});
 }
@@ -302,8 +310,18 @@ function router(){
   $('#main').focus();
   renderNav();
 }
+/* ---------------- account menu (top-right avatar dropdown) ---------------- */
+function renderAcctMenu(){
+  $('#acctmenu').innerHTML=ACCT_MENU[role].map(([h,l])=>
+    h==='__logout'
+      ? `<a href="#" class="acctitem danger" data-logout>${l}</a>`
+      : `<a href="${h}" class="acctitem">${l}</a>`
+  ).join('');
+}
+function closeAcctMenu(){$('#acctmenu').classList.add('hidden');$('#acct').setAttribute('aria-expanded','false');}
+
 /* ---------------- boot ---------------- */
-function setRole(r){role=r;localStorage.setItem('twa-role',r);$('#roleSel').value=r;location.hash=HOME[r];router();}
+function setRole(r){role=r;localStorage.setItem('twa-role',r);$('#roleSel').value=r;renderAcctMenu();location.hash=HOME[r];router();}
 window.addEventListener('hashchange',router);
 document.addEventListener('DOMContentLoaded',()=>{
   $('#roleSel').value=role;
@@ -311,6 +329,19 @@ document.addEventListener('DOMContentLoaded',()=>{
   $('#themeToggle').addEventListener('click',()=>{const r=document.documentElement;r.dataset.theme=r.dataset.theme==='dark'?'light':'dark';});
   $('#bell').addEventListener('click',()=>location.hash='#/notifications');
   $('#globalsearch').addEventListener('keydown',e=>{if(e.key==='Enter')location.hash='#/search';});
+  // account dropdown
+  renderAcctMenu();
+  $('#acct').addEventListener('click',e=>{
+    e.stopPropagation();
+    const m=$('#acctmenu'),open=m.classList.toggle('hidden');
+    $('#acct').setAttribute('aria-expanded',String(!open));
+  });
+  $('#acctmenu').addEventListener('click',e=>{
+    const lo=e.target.closest('[data-logout]');
+    if(lo){e.preventDefault();closeAcctMenu();toast('Signed out (prototype)');location.hash='#/login';return;}
+    if(e.target.closest('.acctitem'))closeAcctMenu();
+  });
+  document.addEventListener('click',e=>{if(!e.target.closest('.acctwrap'))closeAcctMenu();});
   if(!location.hash)location.hash=HOME[role];
   router();
 });

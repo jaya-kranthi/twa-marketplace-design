@@ -32,7 +32,10 @@
       </div>
       <button class="iconbtn" id="bell" title="Notifications" aria-label="Notifications">🔔 <span id="bellcount" class="badge blue" style="padding:0 6px">3</span></button>
       <button class="iconbtn" id="themeToggle" title="Toggle theme" aria-label="Toggle theme">🌗</button>
-      <button class="iconbtn" id="acct" title="Account" aria-label="Account">JK ▾</button>
+      <div class="acctwrap">
+        <button class="iconbtn" id="acct" title="Account" aria-label="Account menu" aria-haspopup="true" aria-expanded="false">JK ▾</button>
+        <div id="acctmenu" class="acctmenu hidden" role="menu" aria-label="Account"></div>
+      </div>
     </div>
   </header>
   <nav class="sidebar" id="sidebar" aria-label="Primary"></nav>
