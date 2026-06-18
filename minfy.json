@@ -6,5 +6,7 @@
   "template": "design-repo-mockups-only",
   "mockups_only": true,
   "remote": "https://github.com/jaya-kranthi/twa-marketplace-design.git",
-  "deploy_urls": { "mockup": "" }
+  "deploy_urls": {
+    "mockup": "https://jaya-kranthi.github.io/twa-marketplace-design/"
+  }
 }
