@@ -13,7 +13,7 @@ This repo holds only the HTML UX mockups under `mockups/`, auto-deployed to GitH
 | Discovery | ✅ 2026-06-18 |
 | Frontend scaffolded | ⬜ Pending |
 | UX approved | ✅ 2026-06-18 |
-| Tech spec | ⬜ Pending |
+| Tech spec | ✅ 2026-06-18 |
 | Backlog generated | ⬜ Pending |
 | Backend / worker / infra scaffolded | ⬜ Pending |
 
