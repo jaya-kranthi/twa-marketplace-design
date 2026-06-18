@@ -67,17 +67,17 @@ const NAV={
   ],
   orgadmin:[
     {items:[['#/dashboard','📊 Dashboard'],['#/catalog','🗂️ Catalog']]},
-    {sec:'Organization',items:[['#/org/members','👥 Members'],['#/org/subscription','💳 Subscription'],['#/org/api-keys','🔑 API Keys'],['#/org/activity','🕑 Org Activity']]},
+    {sec:'Organization',items:[['#/org/members','👥 Members'],['#/org/subscription','💳 Subscription'],['#/org/activity','🕑 Org Activity']]},
   ],
   superadmin:[
     {sec:'Platform',items:[['#/admin/dashboard','📊 Dashboard'],['#/admin/approvals','✅ Approvals'],['#/admin/orgs','🏢 Organizations']]},
-    {sec:'Catalog & Data',items:[['#/admin/catalog','🗂️ Catalog Authoring'],['#/admin/ingestion','📥 Ingestion'],['#/admin/plans','💳 Plans'],['#/admin/categories','🏷️ Categories'],['#/admin/keys','🔑 Ingestion Keys']]},
+    {sec:'Catalog & Data',items:[['#/admin/catalog','🗂️ Catalog Authoring'],['#/admin/ingestion','📥 Ingestion'],['#/admin/plans','💳 Plans'],['#/admin/categories','🏷️ Categories']]},
     {sec:'Governance',items:[['#/admin/audit','📜 Audit']]},
   ],
 };
 // Top-right avatar dropdown — account-scoped, secondary nav (role-aware).
 const ACCT_MENU={
-  user:[['#/settings','⚙️ Settings'],['#/api-keys','🔑 My API Keys'],['__logout','↩︎ Sign out']],
+  user:[['#/settings','⚙️ Settings'],['__logout','↩︎ Sign out']],
   orgadmin:[['#/settings','⚙️ Settings'],['__logout','↩︎ Sign out']],
   superadmin:[['#/settings','⚙️ Settings'],['__logout','↩︎ Sign out']],
 };
@@ -159,25 +159,39 @@ const actTable=(rows)=>`<div class="card"><div class="spread" style="margin:0 0 
 V['#/activity']=()=>`<h1>My Activity</h1>${actTable(ACTIVITY)}`;
 V['#/org/activity']=()=>`<h1>Organization Activity</h1>${actTable(ACTIVITY)}`;
 
-const keyList=(scope)=>`<div class="spread"><h1>${scope} API Keys</h1><button class="btn" onclick="genKey()">+ Generate key</button></div>
+// API keys live UNDER Settings (role-aware tab), never as a left-nav item.
+// Personal (user), Organization (org admin), Ingestion (super admin).
+const consumptionKeys=(scope)=>`<div class="spread"><h2 style="margin:0">${scope} API Keys</h2><button class="btn" onclick="genKey()">+ Generate key</button></div>
   <div class="banner info">Keys draw from your org's shared quota pool (Professional: 100,000 API calls/mo). Usage counts are per-key for attribution.</div>
   <div class="card"><table><thead><tr><th>Name</th><th>Key</th><th>Scope</th><th class="num">Usage</th><th>Last used</th><th></th></tr></thead><tbody>
     <tr><td>prod-ingest-reader</td><td class="mono">twa_••••3f9</td><td>org entitlements</td><td class="num">8,210</td><td>2h ago</td><td><button class="btn sm danger" onclick="confirmRevoke()">Revoke</button></td></tr>
     <tr><td>analytics-pipeline</td><td class="mono">twa_••••a17</td><td>org entitlements</td><td class="num">4,270</td><td>1d ago</td><td><button class="btn sm danger" onclick="confirmRevoke()">Revoke</button></td></tr>
   </tbody></table></div>`;
-V['#/api-keys']=()=>keyList('My');
-V['#/org/api-keys']=()=>keyList('Organization');
+const ingestionKeys=()=>`<div class="spread"><h2 style="margin:0">Ingestion API Keys</h2><button class="btn" onclick="genKey('ingestion')">+ Generate ingestion key</button></div>
+  <div class="card"><table><thead><tr><th>Name</th><th>Key</th><th>Scoped products</th><th class="num">Usage</th><th>Last used</th><th></th></tr></thead><tbody>
+    <tr><td>phantom-pusher</td><td class="mono">twa_ing_••••b22</td><td>All products</td><td class="num">14,902</td><td>11m ago</td><td><button class="btn sm danger" onclick="confirmRevoke()">Revoke</button></td></tr>
+  </tbody></table></div>`;
+const keysBody=(r)=> r==='superadmin' ? ingestionKeys() : consumptionKeys(r==='orgadmin'?'Organization':'My');
 
 V['#/notifications']=()=>`<div class="spread"><h1>Notifications</h1><div class="row"><span class="chip on">All</span><span class="chip">Unread</span></div></div>
   <div class="card" style="padding:0">${NOTIFS.map(n=>`<div style="display:flex;gap:12px;padding:14px;border-bottom:1px solid var(--border)"><div style="font-size:1.2rem">${n.ico}</div><div style="flex:1"><strong>${n.title}</strong> ${n.unread?'<span class="badge blue">new</span>':''}<div class="muted">${n.body}</div></div><div class="faint">${n.time}</div></div>`).join('')}</div>`;
 
-V['#/settings']=()=>`<h1>Settings</h1>
-  <div class="grid" style="grid-template-columns:repeat(auto-fill,minmax(320px,1fr))">
+// Settings is a tabbed page; API Keys is one of its tabs (role-aware).
+const settingsTabs=(active)=>`<div class="row" style="gap:6px;margin:10px 0 18px">${
+  [['#/settings','Profile'],['#/settings/keys','API Keys'],['#/settings/notifications','Notifications']]
+    .map(([h,l])=>`<a class="chip ${active===h?'on':''}" href="${h}">${l}</a>`).join('')}</div>`;
+const settingsShell=(active,body)=>`<h1>Settings</h1>${settingsTabs(active)}${body}`;
+const profileBody=`<div class="grid" style="grid-template-columns:repeat(auto-fill,minmax(320px,1fr))">
     <div class="card"><h3>Profile</h3><div class="field"><label>Name</label><input class="ctrl" value="Jaya Kranthi"></div><div class="field"><label>Email</label><input class="ctrl" value="jk@acme.io" disabled></div><button class="btn sm" style="margin-top:8px" onclick="toast('Profile saved')">Save</button></div>
     <div class="card"><h3>Password</h3><div class="field"><label>Current</label><input class="ctrl" type="password"></div><div class="field"><label>New</label><input class="ctrl" type="password"></div><button class="btn sm" style="margin-top:8px" onclick="toast('Password updated')">Update</button></div>
-    <div class="card"><h3>Notification preferences</h3><label class="row"><input type="checkbox" checked> Subscription &amp; renewals</label><label class="row"><input type="checkbox" checked> New versions published</label><label class="row"><input type="checkbox"> Marketing</label></div>
     <div class="card"><h3>Danger zone</h3><p class="faint">Deactivating your account is irreversible.</p><button class="btn sm danger" onclick="confirmDeactivate()">Deactivate account</button></div>
   </div>`;
+const notifPrefsBody=`<div class="card" style="max-width:480px"><h3>Notification preferences</h3><label class="row"><input type="checkbox" checked> Subscription &amp; renewals</label><label class="row"><input type="checkbox" checked> New versions published</label><label class="row"><input type="checkbox"> Marketing</label><button class="btn sm" style="margin-top:8px" onclick="toast('Preferences saved')">Save</button></div>`;
+V['#/settings']=()=>settingsShell('#/settings',profileBody);
+V['#/settings/keys']=()=>settingsShell('#/settings/keys',keysBody(role));
+V['#/settings/notifications']=()=>settingsShell('#/settings/notifications',notifPrefsBody);
+// Legacy deep links → the Settings keys tab (keys are no longer standalone pages).
+V['#/api-keys']=V['#/org/api-keys']=()=>settingsShell('#/settings/keys',keysBody(role));
 
 V['#/org/members']=()=>`<div class="spread"><h1>Members</h1><button class="btn" onclick="inviteModal()">+ Invite member</button></div>
   <div class="banner warn">18 of 25 seats used (Professional plan).</div>
@@ -247,10 +261,8 @@ V['#/admin/plans']=()=>`<div class="spread"><h1>Plan Management</h1><button clas
 V['#/admin/categories']=()=>`<div class="spread"><h1>Categories</h1><button class="btn" onclick="openModal('New category','<div class=field><label>Name</label><input class=ctrl></div>','<button class=\\'btn secondary\\' data-close>Cancel</button><button class=\\'btn\\' data-close onclick=toast(\\'Category added\\')>Add</button>')">+ Add</button></div>
   <div class="card"><table><tbody>${CATEGORIES.map(c=>`<tr><td>🏷️ ${c}</td><td style="text-align:right"><button class="btn sm ghost">Edit</button></td></tr>`).join('')}</tbody></table></div>`;
 
-V['#/admin/keys']=()=>`<div class="spread"><h1>Ingestion API Keys</h1><button class="btn" onclick="genKey('ingestion')">+ Generate ingestion key</button></div>
-  <div class="card"><table><thead><tr><th>Name</th><th>Key</th><th>Scoped products</th><th class="num">Usage</th><th>Last used</th><th></th></tr></thead><tbody>
-    <tr><td>phantom-pusher</td><td class="mono">twa_ing_••••b22</td><td>All products</td><td class="num">14,902</td><td>11m ago</td><td><button class="btn sm danger" onclick="confirmRevoke()">Revoke</button></td></tr>
-  </tbody></table></div>`;
+// Ingestion keys now live under Settings → API Keys (super admin); legacy link aliases there.
+V['#/admin/keys']=()=>settingsShell('#/settings/keys',keysBody(role));
 
 V['#/admin/audit']=()=>`<h1>Audit Log</h1>${actTable([{t:'2026-06-18 09:30',actor:'Super Admin',action:'org.approve',entity:'Reef Labs',result:'ok'},...ACTIVITY])}`;
 
