@@ -1,9 +1,47 @@
 <!doctype html>
-<html lang="en"><head><meta charset="utf-8">
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>TWA Weather Data Marketplace — UX Mockups</title>
-<style>body{font-family:system-ui,-apple-system,sans-serif;max-width:720px;margin:4rem auto;padding:0 1rem;color:#1a2332}h1{font-weight:650}.muted{color:#5b6b7d}</style>
-</head><body>
-<h1>TWA Weather Data Marketplace</h1>
-<p class="muted">UX mockups will be published here by the ux-builder stage. This is a placeholder.</p>
-</body></html>
+<title>TWA Weather Data Marketplace — UX Prototype</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="app.css">
+</head>
+<body>
+<a href="#main" class="skip">Skip to content</a>
+
+<!-- AUTH (shown for auth routes) -->
+<div id="authroot" class="hidden"></div>
+
+<!-- APP SHELL -->
+<div id="approot" class="app">
+  <div class="brandbar"><span class="dot"></span> TWA&nbsp;Marketplace</div>
+  <header class="topbar">
+    <div class="search">
+      <input id="globalsearch" type="search" placeholder="Search datasets — try “rainfall over the Philippines last monsoon”" aria-label="Search catalog">
+    </div>
+    <div class="tb-right">
+      <div class="roleswitch">
+        <label for="roleSel">Viewing as</label>
+        <select id="roleSel" aria-label="Switch role">
+          <option value="user">User</option>
+          <option value="orgadmin">Org Admin</option>
+          <option value="superadmin">Super Admin</option>
+        </select>
+      </div>
+      <button class="iconbtn" id="bell" title="Notifications" aria-label="Notifications">🔔 <span id="bellcount" class="badge blue" style="padding:0 6px">3</span></button>
+      <button class="iconbtn" id="themeToggle" title="Toggle theme" aria-label="Toggle theme">🌗</button>
+      <button class="iconbtn" id="acct" title="Account" aria-label="Account">JK ▾</button>
+    </div>
+  </header>
+  <nav class="sidebar" id="sidebar" aria-label="Primary"></nav>
+  <main class="main" id="main" tabindex="-1"><!-- view rendered here --></main>
+</div>
+
+<dialog id="modal"></dialog>
+<div id="toast" class="toast hidden" role="status" aria-live="polite"></div>
+
+<script src="app.js"></script>
+</body>
+</html>
